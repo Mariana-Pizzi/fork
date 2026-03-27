@@ -31,6 +31,16 @@ void ejecutar_comando(char *comando, char *argumentos_exec[]) {
 	}
 }
 
+void armar_argumentos(char *argumentos_exec[], char *comando, char *argumentos[], int cantidad) {
+	argumentos_exec[0] = comando;
+	
+	for (int i = 0; i < cantidad; i++) {
+		argumentos_exec[i + 1] = argumentos[i];
+	}
+	
+	argumentos_exec[cantidad + 1] = NULL;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -54,13 +64,8 @@ main(int argc, char *argv[])
 
 		if( cantidad == NARGS) {
 			char *argumentos_exec[NARGS + 2];
-			argumentos_exec[0] = comando;
-
-			for (int i = 0; i < cantidad; i++) {
-				argumentos_exec[i + 1] = argumentos[i];
-			}
-
-			argumentos_exec[cantidad + 1] = NULL;
+			
+			armar_argumentos(argumentos_exec, comando, argumentos, cantidad);
 
 			ejecutar_comando(comando, argumentos_exec);
 
@@ -75,13 +80,7 @@ main(int argc, char *argv[])
 	//cantidad que no llega a cumplir con NARGS
 	if (cantidad > 0) {
 		char *argumentos_exec[NARGS + 2];
-		argumentos_exec[0] = comando;
-
-		for (int i = 0; i < cantidad; i++) {
-			argumentos_exec[i + 1] = argumentos[i];
-		}
-		
-		argumentos_exec[cantidad + 1] = NULL;
+		armar_argumentos(argumentos_exec, comando, argumentos, cantidad);
 
 		ejecutar_comando(comando, argumentos_exec);
 
