@@ -14,44 +14,45 @@ void filtro(int fds_read) {
 	int primo;
 	int leido = read(fds_read, &primo, sizeof(primo));
 
-	while(leido > 0){
-		printf("Primo: %d\n", primo);
+	if (leido <= 0) {
+		close(fds_read);
+		exit(-1);
+	}
+	
+	printf("Primo: %d\n", primo);
 
-		int fds_1[2];
-		pipe(fds_1);
+	int fds[2];
+	pipe(fds);
 
-		int pid2 = fork();
+	int pid = fork();
 
-		if (pid2 < 0) {
-			printf("Error en fork %d\n", pid2);
-			exit(-1);
-		}
+	if (pid < 0) {
+		printf("Error en fork %d\n", pid);
+		exit(-1);
+	}
 
-		if (pid2 == 0) {
-			//siguiente filtro
-			close(fds_1[WRITE]);
-			close(fds[READ]);
+	if (pid == 0) {
+		//hijo
+		close(fds[1]);
+		close(fds_read);
+		filtro(fds[0]);
 
-			fds[READ] = fds_1[READ];
-			leido = read(fds[READ], &primo, sizeof(primo));
-		} else {
-			//padre sig filtro
-			close(fds_1[READ]);
+	} else {
+		//padre
+		close(fds[0]);
 
-			int num;
-			while (read(fds[READ], &num, sizeof(num)) > 0) {
-				if (num % primo != 0) {
-					write(fds_1[WRITE], &num, sizeof(num));
-				}
+		int num;
+		while (read(fds_read, &num, sizeof(num)) > 0) {
+			if (num % primo != 0) {
+				write(fds[1], &num, sizeof(num));
 			}
-			close(fds_1[WRITE]);
-			close(fds[READ]);
-			wait(NULL);
-
-			leido = 0;
 		}
+		close(fds_read);
+		close(fds[1]);
+		wait(NULL);
 	}
 }
+
 
 int
 main(int argc, char *argv[])
