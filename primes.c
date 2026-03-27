@@ -10,8 +10,12 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void crear_pipe(int fds[2]) {
-	if (pipe(fds) < 0) {
+#define READ 0
+#define WRITE 1
+#define NUMERO_MINIMO_INGRESADO 2
+
+void crear_pipe(int pipe_fd[2]) {
+	if (pipe(pipe_fd) < 0) {
 		perror("Error en pipe");
 		exit(1);
 	}
@@ -28,51 +32,52 @@ int crear_fork() {
 	return pid;
 }
 
-void escribir(int fds, int valor) {
-	if(write(fds, &valor, sizeof(valor)) < 0) {
+void escribir(int fd_write, int valor) {
+	int escrito = write(fd_write, &valor, sizeof(valor));
+	if (escrito < 0) {
 		perror("write");
 		exit(1);
 	}
 }
 
-void filtro(int fds_read) {
+void filtro(int fd_read) {
 	int primo;
-	int leido = read(fds_read, &primo, sizeof(primo));
+	int leido = read(fd_read, &primo, sizeof(primo));
 
 	if (leido <= 0) {
-		close(fds_read);
-		exit(1);
+		close(fd_read);
+		exit(0);
 	}
 	
 	printf("primo %d\n", primo);
 
-	int fds[2];
-	crear_pipe(fds);
+	int pipe_fd[2];
+	crear_pipe(pipe_fd);
 
 	int pid = crear_fork();
 
 	if (pid == 0) {
 		//hijo
-		close(fds[1]);
-		close(fds_read);
+		close(pipe_fd[WRITE]);
+		close(fd_read);
 		
-		filtro(fds[0]);
+		filtro(pipe_fd[READ]);
 		
-		close(fds[0]);
+		close(pipe_fd[READ]);
 		exit(0);
 
 	} else {
 		//padre
-		close(fds[0]);
+		close(pipe_fd[READ]);
 
 		int num;
-		while (read(fds_read, &num, sizeof(num)) > 0) {
+		while (read(fd_read, &num, sizeof(num)) > 0) {
 			if (num % primo != 0) {
-				escribir(fds[1], num);
+				escribir(pipe_fd[WRITE], num);
 			}
 		}
-		close(fds_read);
-		close(fds[1]);
+		close(fd_read);
+		close(pipe_fd[WRITE]);
 		wait(NULL);
 	}
 }
@@ -86,32 +91,32 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	int numero_tope = atoi(argv[1]);
+	int numero_ingresado = atoi(argv[1]);
 
-	if (numero_tope < 2) {
+	if (numero_ingresado < NUMERO_MINIMO_INGRESADO) {
 		printf("El numero de entrada debe ser mayor o igual a 2\n");
 		exit(1);
 	}
 
-	int fds[2];
-	crear_pipe(fds);
+	int pipe_fd[2];
+	crear_pipe(pipe_fd);
 
 	int pid = crear_fork();
 
 	if (pid == 0) {
 		//hijo (primer filtro)
-		close(fds[1]);
-		filtro(fds[0]);
+		close(pipe_fd[WRITE]);
+		filtro(pipe_fd[READ]);
 
 	} else {
 		//padre (generador)
-		close(fds[0]);
+		close(pipe_fd[READ]);
 		
-		for (int i = 2; i <=numero_tope; i++){
-			escribir(fds[1], i);
+		for (int i = 2; i <=numero_ingresado; i++){
+			escribir(pipe_fd[WRITE], i);
 		}
 
-		close(fds[1]);
+		close(pipe_fd[WRITE]);
 		wait(NULL);
 	}
 
