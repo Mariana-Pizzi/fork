@@ -13,6 +13,18 @@
 int
 main(int argc, char *argv[])
 {
+	if (argc < 2) {
+		printf("Uso: %s <n>\n", argv[0]);
+		exit(-1);
+	}
+
+	int numero_tope = atoi(argv[1]);
+
+	if (numero_tope < 2) {
+		printf("El numero de entrada debe ser mayor o igual a 2\n");
+		exit(-1);
+	}
+
 	int READ = 0;
 	int WRITE = 1;
 
@@ -74,10 +86,8 @@ main(int argc, char *argv[])
 	} else {
 		//padre (generador)
 		close(fds[READ]);
-
-		int N = 100;
 		
-		for (int i = 2; i <=N; i++){
+		for (int i = 2; i <=numero_tope; i++){
 			write(fds[WRITE], &i, sizeof(i));
 		}
 
