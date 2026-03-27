@@ -8,6 +8,17 @@
 #define NARGS 4
 #endif
 
+int crear_fork() {
+	int pid = fork();
+
+	if(pid < 0) {
+		perror("fork");
+		exit(1);
+	}
+
+	return pid;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -39,11 +50,7 @@ main(int argc, char *argv[])
 
 			argumentos_exec[cantidad + 1] = NULL;
 
-			int pid = fork();
-			if(pid < 0) {
-				perror("fork");
-				exit(1);
-			}
+			int pid = crear_fork();
 
 			if (pid == 0) {
 				execvp(comando, argumentos_exec);
@@ -72,11 +79,7 @@ main(int argc, char *argv[])
 
 		argumentos_exec[cantidad + 1] = NULL;
 
-		int pid = fork();
-		if (pid < 0) {
-			perror("fork");
-			exit(1);
-		}
+		int pid = crear_fork();
 
 		if (pid == 0) {
 			execvp(comando, argumentos_exec);
