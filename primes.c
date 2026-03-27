@@ -28,6 +28,13 @@ int crear_fork() {
 	return pid;
 }
 
+void escribir(int fds, int valor) {
+	if(write(fds, &valor, sizeof(valor)) < 0) {
+		perror("write");
+		exit(1);
+	}
+}
+
 void filtro(int fds_read) {
 	int primo;
 	int leido = read(fds_read, &primo, sizeof(primo));
@@ -61,10 +68,7 @@ void filtro(int fds_read) {
 		int num;
 		while (read(fds_read, &num, sizeof(num)) > 0) {
 			if (num % primo != 0) {
-				if (write(fds[1], &num, sizeof(num)) < 0) {
-					perror("write");
-					exit(1);
-				};
+				escribir(fds[1], num);
 			}
 		}
 		close(fds_read);
@@ -104,10 +108,7 @@ main(int argc, char *argv[])
 		close(fds[0]);
 		
 		for (int i = 2; i <=numero_tope; i++){
-			if (write(fds[1], &i, sizeof(i)) < 0) {
-				perror("write");
-				exit(1);
-			};
+			escribir(fds[1], i);
 		}
 
 		close(fds[1]);
