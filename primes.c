@@ -14,14 +14,18 @@
 #define WRITE 1
 #define NUMERO_MINIMO_INGRESADO 2
 
-void crear_pipe(int pipe_fd[2]) {
+void
+crear_pipe(int pipe_fd[2])
+{
 	if (pipe(pipe_fd) < 0) {
 		perror("Error en pipe");
 		exit(1);
 	}
 }
 
-int crear_fork() {
+int
+crear_fork()
+{
 	int pid = fork();
 
 	if (pid < 0) {
@@ -32,7 +36,9 @@ int crear_fork() {
 	return pid;
 }
 
-void escribir(int fd_write, int valor) {
+void
+escribir(int fd_write, int valor)
+{
 	int escrito = write(fd_write, &valor, sizeof(valor));
 	if (escrito < 0) {
 		perror("write");
@@ -40,7 +46,9 @@ void escribir(int fd_write, int valor) {
 	}
 }
 
-void filtro(int fd_read) {
+void
+filtro(int fd_read)
+{
 	int primo;
 	int leido = read(fd_read, &primo, sizeof(primo));
 
@@ -48,7 +56,7 @@ void filtro(int fd_read) {
 		close(fd_read);
 		exit(0);
 	}
-	
+
 	printf("primo %d\n", primo);
 
 	int pipe_fd[2];
@@ -57,17 +65,17 @@ void filtro(int fd_read) {
 	int pid = crear_fork();
 
 	if (pid == 0) {
-		//hijo
+		// hijo
 		close(pipe_fd[WRITE]);
 		close(fd_read);
-		
+
 		filtro(pipe_fd[READ]);
-		
+
 		close(pipe_fd[READ]);
 		exit(0);
 
 	} else {
-		//padre
+		// padre
 		close(pipe_fd[READ]);
 
 		int num;
@@ -104,15 +112,15 @@ main(int argc, char *argv[])
 	int pid = crear_fork();
 
 	if (pid == 0) {
-		//hijo (primer filtro)
+		// hijo (primer filtro)
 		close(pipe_fd[WRITE]);
 		filtro(pipe_fd[READ]);
 
 	} else {
-		//padre (generador)
+		// padre (generador)
 		close(pipe_fd[READ]);
-		
-		for (int i = 2; i <=numero_ingresado; i++){
+
+		for (int i = 2; i <= numero_ingresado; i++) {
 			escribir(pipe_fd[WRITE], i);
 		}
 

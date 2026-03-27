@@ -8,20 +8,24 @@
 #define NARGS 4
 #endif
 
-int crear_fork() {
+int
+crear_fork()
+{
 	int pid = fork();
-	
-	if(pid < 0) {
+
+	if (pid < 0) {
 		perror("fork");
 		exit(1);
 	}
-	
+
 	return pid;
 }
 
-void ejecutar_comando(char *comando, char *argumentos_exec[]) {
+void
+ejecutar_comando(char *comando, char *argumentos_exec[])
+{
 	int pid = crear_fork();
-	
+
 	if (pid == 0) {
 		execvp(comando, argumentos_exec);
 		perror("execvp");
@@ -31,17 +35,21 @@ void ejecutar_comando(char *comando, char *argumentos_exec[]) {
 	}
 }
 
-void armar_argumentos(char *argumentos_exec[], char *comando, char *argumentos[], int cantidad) {
+void
+armar_argumentos(char *argumentos_exec[], char *comando, char *argumentos[], int cantidad)
+{
 	argumentos_exec[0] = comando;
-	
+
 	for (int i = 0; i < cantidad; i++) {
 		argumentos_exec[i + 1] = argumentos[i];
 	}
-	
+
 	argumentos_exec[cantidad + 1] = NULL;
 }
 
-void liberar_argumentos(char *argumentos[], int cantidad) {
+void
+liberar_argumentos(char *argumentos[], int cantidad)
+{
 	for (int i = 0; i < cantidad; i++) {
 		free(argumentos[i]);
 	}
@@ -50,6 +58,11 @@ void liberar_argumentos(char *argumentos[], int cantidad) {
 int
 main(int argc, char *argv[])
 {
+	if (argc < 2) {
+		printf("Uso: %s <comando>\n", argv[0]);
+		exit(1);
+	}
+	
 	char *comando = argv[1];
 	char *buffer = NULL;
 	size_t tamano = 0;
@@ -61,17 +74,18 @@ main(int argc, char *argv[])
 		buffer[strcspn(buffer, "\n")] = '\0';
 
 		argumentos[cantidad] = strdup(buffer);
-		if(argumentos[cantidad] == NULL) {
+		if (argumentos[cantidad] == NULL) {
 			perror("strdup");
 			exit(1);
 		}
 
 		cantidad++;
 
-		if( cantidad == NARGS) {
+		if (cantidad == NARGS) {
 			char *argumentos_exec[NARGS + 2];
-			
-			armar_argumentos(argumentos_exec, comando, argumentos, cantidad);
+
+			armar_argumentos(
+			        argumentos_exec, comando, argumentos, cantidad);
 
 			ejecutar_comando(comando, argumentos_exec);
 
@@ -81,7 +95,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	//cantidad que no llega a cumplir con NARGS
+	// cantidad que no llega a cumplir con NARGS
 	if (cantidad > 0) {
 		char *argumentos_exec[NARGS + 2];
 		armar_argumentos(argumentos_exec, comando, argumentos, cantidad);
