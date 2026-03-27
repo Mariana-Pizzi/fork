@@ -17,6 +17,17 @@ void crear_pipe(int fds[2]) {
 	}
 }
 
+int crear_fork() {
+	int pid = fork();
+
+	if (pid < 0) {
+		printf("Error en fork %d\n", pid);
+		exit(1);
+	}
+
+	return pid;
+}
+
 void filtro(int fds_read) {
 	int primo;
 	int leido = read(fds_read, &primo, sizeof(primo));
@@ -31,12 +42,7 @@ void filtro(int fds_read) {
 	int fds[2];
 	crear_pipe(fds);
 
-	int pid = fork();
-
-	if (pid < 0) {
-		printf("Error en fork %d\n", pid);
-		exit(1);
-	}
+	int pid = crear_fork();
 
 	if (pid == 0) {
 		//hijo
@@ -86,12 +92,7 @@ main(int argc, char *argv[])
 	int fds[2];
 	crear_pipe(fds);
 
-	int pid = fork();
-
-	if (pid < 0) {
-		printf("Error en fork %d\n", pid);
-		exit(1);
-	}
+	int pid = crear_fork();
 
 	if (pid == 0) {
 		//hijo (primer filtro)
