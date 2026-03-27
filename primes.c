@@ -22,7 +22,11 @@ void filtro(int fds_read) {
 	printf("Primo: %d\n", primo);
 
 	int fds[2];
-	pipe(fds);
+
+	if (pipe(fds) < 0) {
+		perror("Error en pipe");
+		exit(-1);
+	}
 
 	int pid = fork();
 
@@ -73,7 +77,11 @@ main(int argc, char *argv[])
 	int WRITE = 1;
 
 	int fds[2];
-	pipe(fds);
+
+	if (pipe(fds) < 0) {
+		perror("Error en pipe");
+		exit(-1);
+	}
 
 	int pid = fork();
 
