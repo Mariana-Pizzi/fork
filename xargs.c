@@ -10,13 +10,25 @@
 
 int crear_fork() {
 	int pid = fork();
-
+	
 	if(pid < 0) {
 		perror("fork");
 		exit(1);
 	}
-
+	
 	return pid;
+}
+
+void ejecutar_comando(char *comando, char *argumentos_exec[]) {
+	int pid = crear_fork();
+	
+	if (pid == 0) {
+		execvp(comando, argumentos_exec);
+		perror("execvp");
+		exit(1);
+	} else {
+		wait(NULL);
+	}
 }
 
 int
@@ -50,15 +62,7 @@ main(int argc, char *argv[])
 
 			argumentos_exec[cantidad + 1] = NULL;
 
-			int pid = crear_fork();
-
-			if (pid == 0) {
-				execvp(comando, argumentos_exec);
-				perror("execvp");
-				exit(1);
-			} else {
-				wait(NULL);
-			}
+			ejecutar_comando(comando, argumentos_exec);
 
 			for (int i = 0; i < cantidad; i++) {
 				free(argumentos[i]);
@@ -76,18 +80,10 @@ main(int argc, char *argv[])
 		for (int i = 0; i < cantidad; i++) {
 			argumentos_exec[i + 1] = argumentos[i];
 		}
-
+		
 		argumentos_exec[cantidad + 1] = NULL;
 
-		int pid = crear_fork();
-
-		if (pid == 0) {
-			execvp(comando, argumentos_exec);
-			perror("execvp");
-			exit(1);
-		} else {
-			wait(NULL);
-		}
+		ejecutar_comando(comando, argumentos_exec);
 
 		for (int i = 0; i < cantidad; i++) {
 			free(argumentos[i]);
