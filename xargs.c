@@ -41,6 +41,12 @@ void armar_argumentos(char *argumentos_exec[], char *comando, char *argumentos[]
 	argumentos_exec[cantidad + 1] = NULL;
 }
 
+void liberar_argumentos(char *argumentos[], int cantidad) {
+	for (int i = 0; i < cantidad; i++) {
+		free(argumentos[i]);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -69,9 +75,7 @@ main(int argc, char *argv[])
 
 			ejecutar_comando(comando, argumentos_exec);
 
-			for (int i = 0; i < cantidad; i++) {
-				free(argumentos[i]);
-			}
+			liberar_argumentos(argumentos, cantidad);
 
 			cantidad = 0;
 		}
@@ -84,9 +88,7 @@ main(int argc, char *argv[])
 
 		ejecutar_comando(comando, argumentos_exec);
 
-		for (int i = 0; i < cantidad; i++) {
-			free(argumentos[i]);
-		}
+		liberar_argumentos(argumentos, cantidad);
 	}
 
 	free(buffer);
