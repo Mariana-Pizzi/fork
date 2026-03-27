@@ -10,6 +10,13 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+void crear_pipe(int fds[2]) {
+	if (pipe(fds) < 0) {
+		perror("Error en pipe");
+		exit(1);
+	}
+}
+
 void filtro(int fds_read) {
 	int primo;
 	int leido = read(fds_read, &primo, sizeof(primo));
@@ -22,11 +29,7 @@ void filtro(int fds_read) {
 	printf("primo %d\n", primo);
 
 	int fds[2];
-
-	if (pipe(fds) < 0) {
-		perror("Error en pipe");
-		exit(1);
-	}
+	crear_pipe(fds);
 
 	int pid = fork();
 
@@ -81,11 +84,7 @@ main(int argc, char *argv[])
 	}
 
 	int fds[2];
-
-	if (pipe(fds) < 0) {
-		perror("Error en pipe");
-		exit(1);
-	}
+	crear_pipe(fds);
 
 	int pid = fork();
 
