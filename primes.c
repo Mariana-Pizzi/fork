@@ -10,6 +10,49 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+void filtro(int fds_read) {
+	int primo;
+	int leido = read(fds_read, &primo, sizeof(primo));
+
+	while(leido > 0){
+		printf("Primo: %d\n", primo);
+
+		int fds_1[2];
+		pipe(fds_1);
+
+		int pid2 = fork();
+
+		if (pid2 < 0) {
+			printf("Error en fork %d\n", pid2);
+			exit(-1);
+		}
+
+		if (pid2 == 0) {
+			//siguiente filtro
+			close(fds_1[WRITE]);
+			close(fds[READ]);
+
+			fds[READ] = fds_1[READ];
+			leido = read(fds[READ], &primo, sizeof(primo));
+		} else {
+			//padre sig filtro
+			close(fds_1[READ]);
+
+			int num;
+			while (read(fds[READ], &num, sizeof(num)) > 0) {
+				if (num % primo != 0) {
+					write(fds_1[WRITE], &num, sizeof(num));
+				}
+			}
+			close(fds_1[WRITE]);
+			close(fds[READ]);
+			wait(NULL);
+
+			leido = 0;
+		}
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -41,47 +84,7 @@ main(int argc, char *argv[])
 	if (pid == 0) {
 		//hijo (primer filtro)
 		close(fds[WRITE]);
-
-		int primo;
-		int leido = read(fds[READ], &primo, sizeof(primo));
-
-		while(leido > 0){
-			printf("Primo: %d\n", primo);
-
-			int fds_1[2];
-			pipe(fds_1);
-
-			int pid2 = fork();
-
-			if (pid2 < 0) {
-				printf("Error en fork %d\n", pid2);
-				exit(-1);
-			}
-
-			if (pid2 == 0) {
-				//siguiente filtro
-				close(fds_1[WRITE]);
-				close(fds[READ]);
-
-				fds[READ] = fds_1[READ];
-				leido = read(fds[READ], &primo, sizeof(primo));
-			} else {
-				//padre sig filtro
-				close(fds_1[READ]);
-
-				int num;
-				while (read(fds[READ], &num, sizeof(num)) > 0) {
-					if (num % primo != 0) {
-						write(fds_1[WRITE], &num, sizeof(num));
-					}
-				}
-				close(fds_1[WRITE]);
-				close(fds[READ]);
-				wait(NULL);
-
-				leido = 0;
-			}
-		}
+		filtro(fds[READ]);
 
 	} else {
 		//padre (generador)
